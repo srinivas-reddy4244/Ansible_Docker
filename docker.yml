@@ -1,0 +1,44 @@
+---
+- hosts: 192.168.1.56
+  tasks:
+          - name: "adding docker repo"
+            yum_repository:
+                    name: Docker
+                    description: "Docker repo"
+                    baseurl: "https://download.docker.com/linux/centos/7/x86_64/stable"
+                    gpgcheck: no
+          - name: "Installing docker"
+            shell: echo y | yum install docker-ce  --nobest
+
+          - name: "starting docker services"
+            service:
+                    name: "docker"
+                    state: started
+                    enabled: yes
+          - name: "Installing docker SDk for python3"
+            command:
+                    cmd: "pip3 install docker"
+          - name: "creating folder and copying html files"
+            file:
+                    path: "/files"
+                    state: directory
+
+          - name: "copying html files"
+            copy:
+                    src: "index.html"
+                    dest: "/workspace/"
+
+          - name: "creating container using httpd"
+            docker_container:
+                    name: "myserver"
+                    image: "httpd"
+                    state: started
+                    exposed_ports:
+                            - "80"
+                    ports:
+                            - "8080:80"
+                    volumes:
+                            - /workspace:/usr/local/apache2/htdocs/
+
+
+
